@@ -1,0 +1,24 @@
+{
+  "email_account": {
+    "username": "your_email@company.com",
+    "password": "your_password_or_authorization_code",
+    "imap_server": "imap.qiye.aliyun.com",
+    "imap_port": 993,
+    "smtp_server": "smtp.qiye.aliyun.com",
+    "smtp_port": 465
+  },
+  "target_email": "your_target_email@example.com",
+  "leaders": {
+    "boss@company.com": "老板",
+    "manager@company.com": "经理"
+  },
+  "employees": {
+    "colleague1@company.com": "张三",
+    "colleague2@company.com": "李四",
+    "colleague3@company.com": "王五"
+  },
+  "schedule_time": "09:00",
+  "days_to_check": 7,
+  "repeat_issue_days": 3
+}
+
