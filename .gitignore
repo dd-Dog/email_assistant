@@ -7,6 +7,9 @@ config.json
 # 生成的报告文件
 reports/
 
+# AI缓存文件
+ai_cache/
+
 # Python
 __pycache__/
 *.py[cod]

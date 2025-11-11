@@ -26,6 +26,17 @@
   },
   "schedule_time": "09:00",
   "days_to_check": 3,
-  "repeat_issue_days": 3
+  "repeat_issue_days": 3,
+  "ai_config": {
+    "enabled": true,
+    "provider": "openai",
+    "api_key": "your_openai_api_key_here",
+    "model": "gpt-4o-mini",
+    "enable_summary": true,
+    "enable_priority": true,
+    "enable_action_items": true,
+    "max_tokens": 500,
+    "temperature": 0.3
+  }
 }
 
