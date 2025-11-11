@@ -147,28 +147,63 @@ class EmailAnalyzer:
         
         return grouped
     
-    def generate_summary(self, leader_emails, employee_emails, employee_repeat_issues):
-        """生成邮件摘要（V2.0）
+    def group_emails_by_sender_and_day(self, emails):
+        """按发件人和日期分组邮件（V3.0）"""
+        from collections import defaultdict
+        
+        grouped = defaultdict(lambda: defaultdict(list))
+        
+        for email_item in emails:
+            sender = email_item['from_email']
+            date_key = email_item['date'].date()
+            grouped[sender][date_key].append(email_item)
+        
+        # 按日期排序
+        for sender in grouped:
+            for date_key in grouped[sender]:
+                grouped[sender][date_key].sort(key=lambda x: x['date'])
+        
+        return dict(grouped)
+    
+    def generate_summary(self, leaders_config, pms_config, employees_config,
+                        leader_emails, pm_emails, employee_emails, employee_repeat_issues):
+        """生成邮件摘要（V3.0 - 三类人员按天汇总）
         
         Args:
+            leaders_config: 领导配置字典
+            pms_config: 项目经理配置字典
+            employees_config: 员工配置字典
             leader_emails: 领导的邮件列表
+            pm_emails: 项目经理的邮件列表
             employee_emails: 员工的邮件列表
             employee_repeat_issues: 员工邮件中的重复问题
             
         Returns:
             包含分类汇总的字典
         """
-        # 按发件人分组
+        # 按发件人分组（保持兼容）
         leaders_grouped = self.group_emails_by_sender(leader_emails)
+        pms_grouped = self.group_emails_by_sender(pm_emails)
         employees_grouped = self.group_emails_by_sender(employee_emails)
         
+        # 按发件人和天分组（V3.0）
+        leader_emails_by_day = self.group_emails_by_sender_and_day(leader_emails)
+        pm_emails_by_day = self.group_emails_by_sender_and_day(pm_emails)
+        employee_emails_by_day = self.group_emails_by_sender_and_day(employee_emails)
+        
         summary = {
-            'total_emails': len(leader_emails) + len(employee_emails),
+            'total_emails': len(leader_emails) + len(pm_emails) + len(employee_emails),
             'leader_count': len(leader_emails),
+            'pm_count': len(pm_emails),
             'employee_count': len(employee_emails),
             'leaders': leaders_grouped,
+            'project_managers': pms_grouped,
             'employees': employees_grouped,
-            'repeat_issues': employee_repeat_issues
+            'repeat_issues': employee_repeat_issues,
+            # V3.0：按天分组的数据
+            'leader_emails_by_day': leader_emails_by_day,
+            'pm_emails_by_day': pm_emails_by_day,
+            'employee_emails_by_day': employee_emails_by_day
         }
         
         return summary

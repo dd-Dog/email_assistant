@@ -7,10 +7,17 @@
     "smtp_server": "smtp.qiye.aliyun.com",
     "smtp_port": 465
   },
-  "target_email": "your_target_email@example.com",
+  "target_emails": [
+    "your_target_email@example.com",
+    "your_work_email@company.com"
+  ],
   "leaders": {
     "boss@company.com": "老板",
-    "manager@company.com": "经理"
+    "ceo@company.com": "CEO"
+  },
+  "project_managers": {
+    "pm1@company.com": "项目经理张三",
+    "pm2@company.com": "项目经理李四"
   },
   "employees": {
     "colleague1@company.com": "张三",
@@ -18,7 +25,7 @@
     "colleague3@company.com": "王五"
   },
   "schedule_time": "09:00",
-  "days_to_check": 7,
+  "days_to_check": 3,
   "repeat_issue_days": 3
 }
 

@@ -1,11 +1,15 @@
+"""
+主程序 - 带本地保存功能
+生成报告后保存到本地文件，同时尝试发送邮件
+"""
 import json
 import logging
 import sys
-import os
 from datetime import datetime
 from email_client import EmailClient
 from email_analyzer import EmailAnalyzer
 from report_generator_text import TextReportGenerator
+import os
 
 # 配置日志
 logging.basicConfig(
@@ -32,10 +36,29 @@ def load_config(config_file='config.json'):
         sys.exit(1)
 
 
+def save_report_to_file(report_text, config):
+    """保存报告到本地文件"""
+    # 创建reports目录
+    reports_dir = "reports"
+    if not os.path.exists(reports_dir):
+        os.makedirs(reports_dir)
+    
+    # 生成文件名
+    filename = f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+    filepath = os.path.join(reports_dir, filename)
+    
+    # 保存文件
+    with open(filepath, 'w', encoding='utf-8') as f:
+        f.write(report_text)
+    
+    logger.info(f"✅ 报告已保存到: {filepath}")
+    return filepath
+
+
 def main():
     """主函数"""
     logger.info("=" * 50)
-    logger.info("邮件助手开始运行")
+    logger.info("邮件助手开始运行（V3.0 - 带本地保存）")
     logger.info("=" * 50)
     
     # 加载配置
@@ -104,35 +127,6 @@ def main():
         
         if total_emails == 0:
             logger.warning("未找到任何邮件")
-            # 仍然发送一封空报告
-            report_gen = TextReportGenerator()
-            summary = {
-                'total_emails': 0,
-                'leader_count': 0,
-                'pm_count': 0,
-                'employee_count': 0,
-                'leaders': {},
-                'project_managers': {},
-                'employees': {},
-                'repeat_issues': [],
-                'leader_emails_by_day': {},
-                'pm_emails_by_day': {},
-                'employee_emails_by_day': {}
-            }
-            text_report = report_gen.generate_text_report(summary)
-            
-            # 发送报告（支持多个收件人）
-            target_emails = config.get('target_emails', [config.get('target_email', '')])
-            if isinstance(target_emails, str):
-                target_emails = [target_emails]
-            
-            subject = f"邮件助手每日报告 V3.0 - {datetime.now().strftime('%Y-%m-%d')}"
-            
-            for target_email in target_emails:
-                if target_email:
-                    client.send_email_text(target_email, subject, text_report)
-            
-            client.disconnect_imap()
             return
         
         # 分析员工邮件中的重复问题
@@ -158,32 +152,18 @@ def main():
         report_gen = TextReportGenerator()
         text_report = report_gen.generate_text_report(summary)
         
-        # 保存报告到本地（V3.0新增）
-        reports_dir = "reports"
-        if not os.path.exists(reports_dir):
-            os.makedirs(reports_dir)
+        # 保存报告到本地文件
+        report_file = save_report_to_file(text_report, config)
         
-        report_filename = f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
-        report_filepath = os.path.join(reports_dir, report_filename)
-        
-        with open(report_filepath, 'w', encoding='utf-8') as f:
-            f.write(text_report)
-        
-        logger.info(f"✅ 报告已保存到本地: {report_filepath}")
-        
-        # 准备发送报告（使用极简主题，伪装成普通邮件）
-        today = datetime.now().strftime('%m月%d日')
-        subject = f"{today}工作汇总"
+        # 准备发送报告
+        today = datetime.now().strftime('%Y-%m-%d')
+        subject = f"工作邮件汇总 - {today}"
         
         if employee_repeat_issues:
-            subject += f"(需关注)"
-        
-        if not employee_repeat_issues:
-            logger.info("✅ 未发现重复问题")
+            subject += f" (有{len(employee_repeat_issues)}个重复问题)"
         
         # 发送报告到多个收件人
         target_emails = config.get('target_emails', [])
-        # 兼容旧配置（如果有target_email则转为数组）
         if not target_emails and 'target_email' in config:
             target_emails = [config['target_email']]
         if isinstance(target_emails, str):
@@ -209,16 +189,16 @@ def main():
                 failed_emails.append(target_email)
                 logger.error(f"    ❌ 发送失败")
         
-        # 总结发送结果
+        # 总结
         logger.info("=" * 50)
-        logger.info(f"📄 本地报告: {report_filepath}")
+        logger.info(f"📄 本地报告: {report_file}")
         if success_count > 0:
             logger.info(f"✅ 成功发送到 {success_count}/{len(target_emails)} 个邮箱")
             if failed_emails:
                 logger.warning(f"⚠️  失败邮箱: {', '.join(failed_emails)}")
         else:
-            logger.warning("⚠️  邮件发送失败，但报告已保存到本地")
-            logger.warning(f"   请直接查看: {report_filepath}")
+            logger.warning("⚠️  邮件发送失败，但报告已保存到本地文件")
+            logger.warning(f"   请查看: {report_file}")
         logger.info("=" * 50)
         
         # 断开连接

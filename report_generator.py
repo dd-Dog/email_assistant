@@ -1,11 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from collections import defaultdict
 import logging
 
 logger = logging.getLogger(__name__)
 
 
 class ReportGenerator:
-    """报告生成器，生成HTML格式的邮件摘要"""
+    """报告生成器，生成HTML格式的邮件摘要（V3.0）"""
     
     def __init__(self):
         pass
@@ -20,9 +21,28 @@ class ReportGenerator:
         """格式化日期"""
         return date.strftime("%Y-%m-%d %H:%M")
     
+    def format_date_only(self, date):
+        """只格式化日期（不含时间）"""
+        return date.strftime("%Y-%m-%d")
+    
+    def group_emails_by_day(self, emails):
+        """将邮件按天分组
+        
+        Returns:
+            {sender_email: {date: [emails]}}
+        """
+        grouped = defaultdict(lambda: defaultdict(list))
+        
+        for email_item in emails:
+            sender = email_item['from_email']
+            date_key = email_item['date'].date()
+            grouped[sender][date_key].append(email_item)
+        
+        return grouped
+    
     def generate_html_report(self, summary):
-        """生成HTML格式的报告（V2.0）"""
-        logger.info("正在生成HTML报告...")
+        """生成HTML格式的报告（V3.0 - 按天汇总）"""
+        logger.info("正在生成HTML报告（V3.0）...")
         
         html = f"""
 <!DOCTYPE html>

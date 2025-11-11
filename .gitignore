@@ -4,6 +4,9 @@ config.json
 # 日志文件
 *.log
 
+# 生成的报告文件
+reports/
+
 # Python
 __pycache__/
 *.py[cod]
