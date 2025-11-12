@@ -61,7 +61,9 @@ class AIReportGenerator:
         lines.append(f"邮件总数: {summary['total_emails']} 封 | " +
                     f"领导: {summary['leader_count']} | " +
                     f"项目经理: {summary['pm_count']} | " +
-                    f"员工: {summary['employee_count']}")
+                    f"员工: {summary['employee_count']} | " +
+                    f"客户: {summary['customer_count']} | " +
+                    f"供应商: {summary['supplier_count']}")
         if summary['repeat_issues']:
             lines.append(f"⚠️  重复问题: {len(summary['repeat_issues'])} 个")
         if ai_enabled:
@@ -205,6 +207,99 @@ class AIReportGenerator:
                                     lines.append(f"    {' | '.join(content_lines)}")
             
             lines.append("")
+        
+        # 客户需求邮件（优先显示，V4.0新增）
+        if summary.get('customer_emails_by_day'):
+            filtered_customer_data = {}
+            for sender_email, days_data in summary['customer_emails_by_day'].items():
+                filtered_days = {}
+                for date_key, emails in days_data.items():
+                    filtered_emails = [e for e in emails if e['id'] not in high_priority_email_ids]
+                    if filtered_emails:
+                        filtered_days[date_key] = filtered_emails
+                if filtered_days:
+                    filtered_customer_data[sender_email] = filtered_days
+            
+            if filtered_customer_data:
+                customer_count_filtered = sum(len(e) for days in filtered_customer_data.values() for e in days.values())
+                
+                lines.append("")
+                lines.append(f"█ 🏢 客户需求邮件 ({customer_count_filtered}封) - AI需求分析")
+                lines.append("")
+                
+                for sender_email, days_data in filtered_customer_data.items():
+                    sender_name = summary.get('customers', {}).get(sender_email, {}).get('name', sender_email)
+                    total_count = sum(len(emails) for emails in days_data.values())
+                    lines.append(f"▸ {sender_name} ({sender_email}) - {total_count}封")
+                    
+                    sorted_dates = sorted(days_data.keys(), reverse=True)
+                    for date_key in sorted_dates:
+                        day_emails = days_data[date_key]
+                        date_str = self.format_date_only(date_key)
+                        
+                        for email_item in day_emails:
+                            if email_item['id'] in high_priority_email_ids:
+                                continue
+                            
+                            time_str = self.format_time_only(email_item['date'])
+                            subject = email_item['subject'][:45]
+                            
+                            if ai_enabled and email_item.get('ai_analysis'):
+                                ai = email_item['ai_analysis']
+                                priority_emoji = self.get_priority_emoji(ai.get('priority'))
+                                urgency = self.get_urgency_text(ai.get('urgency'))
+                                lines.append(f"  {date_str} {time_str} {subject} [{priority_emoji}{urgency}]")
+                                
+                                # 客户邮件特殊显示：需求分析
+                                if ai.get('summary'):
+                                    lines.append(f"    📝 需求: {ai['summary']}")
+                                
+                                if ai.get('feasibility'):
+                                    lines.append(f"    ⚙️  可行性: {ai['feasibility']}")
+                                
+                                if ai.get('implementation'):
+                                    impl = ai['implementation']
+                                    if isinstance(impl, list):
+                                        impl_text = " | ".join(impl[:3])
+                                    else:
+                                        impl_text = impl[:100]
+                                    lines.append(f"    🔧 实现: {impl_text}")
+                                
+                                if ai.get('suggestions'):
+                                    lines.append(f"    💡 建议: {ai['suggestions']}")
+                                
+                                if ai.get('action_items'):
+                                    actions = " | ".join(ai['action_items'][:2])
+                                    if actions:
+                                        lines.append(f"    ✓ {actions[:80]}")
+                            else:
+                                lines.append(f"  {date_str} {time_str} {subject}")
+                                content = email_item['body'].strip()
+                                if content:
+                                    content_lines = [line.strip()[:60] for line in content.split('\n')[:2] if line.strip()]
+                                    if content_lines:
+                                        lines.append(f"    {' | '.join(content_lines)}")
+                
+                lines.append("")
+        
+        # 供应商邮件（V4.0新增）
+        if summary.get('supplier_emails_by_day'):
+            filtered_supplier_data = {}
+            for sender_email, days_data in summary['supplier_emails_by_day'].items():
+                filtered_days = {}
+                for date_key, emails in days_data.items():
+                    filtered_emails = [e for e in emails if e['id'] not in high_priority_email_ids]
+                    if filtered_emails:
+                        filtered_days[date_key] = filtered_emails
+                if filtered_days:
+                    filtered_supplier_data[sender_email] = filtered_days
+            
+            if filtered_supplier_data:
+                supplier_count_filtered = sum(len(e) for days in filtered_supplier_data.values() for e in days.values())
+                add_person_emails_with_ai(filtered_supplier_data,
+                                        summary.get('suppliers', {}),
+                                        f"供应商邮件汇总 ({supplier_count_filtered}封)",
+                                        "🔌")
         
         # 领导邮件（排除已在高优先级显示的）
         if summary.get('leader_emails_by_day'):

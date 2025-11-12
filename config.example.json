@@ -24,6 +24,14 @@
     "colleague2@company.com": "李四",
     "colleague3@company.com": "王五"
   },
+  "customers": {
+    "customer1@client.com": "客户A公司",
+    "customer2@client.com": "客户B公司"
+  },
+  "suppliers": {
+    "supplier1@chipmaker.com": "芯片供应商A",
+    "supplier2@chipmaker.com": "芯片供应商B"
+  },
   "schedule_time": "09:00",
   "days_to_check": 3,
   "repeat_issue_days": 3,

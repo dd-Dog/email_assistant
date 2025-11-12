@@ -165,17 +165,22 @@ class EmailAnalyzer:
         
         return dict(grouped)
     
-    def generate_summary(self, leaders_config, pms_config, employees_config,
-                        leader_emails, pm_emails, employee_emails, employee_repeat_issues):
-        """生成邮件摘要（V3.0 - 三类人员按天汇总）
+    def generate_summary(self, leaders_config, pms_config, employees_config, customers_config, suppliers_config,
+                        leader_emails, pm_emails, employee_emails, customer_emails, supplier_emails,
+                        employee_repeat_issues):
+        """生成邮件摘要（V4.0 - 五类人员按天汇总）
         
         Args:
             leaders_config: 领导配置字典
             pms_config: 项目经理配置字典
             employees_config: 员工配置字典
+            customers_config: 客户配置字典
+            suppliers_config: 供应商配置字典
             leader_emails: 领导的邮件列表
             pm_emails: 项目经理的邮件列表
             employee_emails: 员工的邮件列表
+            customer_emails: 客户的邮件列表
+            supplier_emails: 供应商的邮件列表
             employee_repeat_issues: 员工邮件中的重复问题
             
         Returns:
@@ -185,25 +190,35 @@ class EmailAnalyzer:
         leaders_grouped = self.group_emails_by_sender(leader_emails)
         pms_grouped = self.group_emails_by_sender(pm_emails)
         employees_grouped = self.group_emails_by_sender(employee_emails)
+        customers_grouped = self.group_emails_by_sender(customer_emails)
+        suppliers_grouped = self.group_emails_by_sender(supplier_emails)
         
-        # 按发件人和天分组（V3.0）
+        # 按发件人和天分组
         leader_emails_by_day = self.group_emails_by_sender_and_day(leader_emails)
         pm_emails_by_day = self.group_emails_by_sender_and_day(pm_emails)
         employee_emails_by_day = self.group_emails_by_sender_and_day(employee_emails)
+        customer_emails_by_day = self.group_emails_by_sender_and_day(customer_emails)
+        supplier_emails_by_day = self.group_emails_by_sender_and_day(supplier_emails)
         
         summary = {
-            'total_emails': len(leader_emails) + len(pm_emails) + len(employee_emails),
+            'total_emails': len(leader_emails) + len(pm_emails) + len(employee_emails) + len(customer_emails) + len(supplier_emails),
             'leader_count': len(leader_emails),
             'pm_count': len(pm_emails),
             'employee_count': len(employee_emails),
+            'customer_count': len(customer_emails),
+            'supplier_count': len(supplier_emails),
             'leaders': leaders_grouped,
             'project_managers': pms_grouped,
             'employees': employees_grouped,
+            'customers': customers_grouped,
+            'suppliers': suppliers_grouped,
             'repeat_issues': employee_repeat_issues,
-            # V3.0：按天分组的数据
+            # 按天分组的数据
             'leader_emails_by_day': leader_emails_by_day,
             'pm_emails_by_day': pm_emails_by_day,
-            'employee_emails_by_day': employee_emails_by_day
+            'employee_emails_by_day': employee_emails_by_day,
+            'customer_emails_by_day': customer_emails_by_day,
+            'supplier_emails_by_day': supplier_emails_by_day
         }
         
         return summary

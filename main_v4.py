@@ -75,34 +75,41 @@ def main():
             logger.error("无法连接到邮箱服务器，程序退出")
             return
         
-        # 获取配置
+        # 获取配置（5类人员）
         leaders = config.get('leaders', {})
         project_managers = config.get('project_managers', {})
         employees = config.get('employees', {})
+        customers = config.get('customers', {})
+        suppliers = config.get('suppliers', {})
         days_to_check = config.get('days_to_check', 3)
         repeat_issue_days = config.get('repeat_issue_days', 3)
         
         logger.info(f"正在读取最近 {days_to_check} 天的邮件...")
-        logger.info(f"领导数量: {len(leaders)}")
-        logger.info(f"项目经理数量: {len(project_managers)}")
-        logger.info(f"员工数量: {len(employees)}")
+        logger.info(f"领导: {len(leaders)} | 项目经理: {len(project_managers)} | 员工: {len(employees)}")
+        logger.info(f"客户: {len(customers)} | 供应商: {len(suppliers)}")
         
         # 合并所有关键人，一次性获取所有邮件
         all_senders = {}
         all_senders.update(leaders)
         all_senders.update(project_managers)
         all_senders.update(employees)
+        all_senders.update(customers)
+        all_senders.update(suppliers)
         
         logger.info(f"正在获取 {len(all_senders)} 个关键人的邮件...")
         all_emails = client.fetch_emails_from_senders(all_senders, days_to_check)
         
-        # 分类邮件
+        # 分类邮件（5类）
         leader_emails = []
         pm_emails = []
         employee_emails = []
+        customer_emails = []
+        supplier_emails = []
         
         leader_emails_lower = {email.lower() for email in leaders.keys()}
         pm_emails_lower = {email.lower() for email in project_managers.keys()}
+        customer_emails_lower = {email.lower() for email in customers.keys()}
+        supplier_emails_lower = {email.lower() for email in suppliers.keys()}
         
         for email_item in all_emails:
             email_lower = email_item['from_email'].lower()
@@ -110,12 +117,15 @@ def main():
                 leader_emails.append(email_item)
             elif email_lower in pm_emails_lower:
                 pm_emails.append(email_item)
+            elif email_lower in customer_emails_lower:
+                customer_emails.append(email_item)
+            elif email_lower in supplier_emails_lower:
+                supplier_emails.append(email_item)
             else:
                 employee_emails.append(email_item)
         
-        logger.info(f"获取到 {len(leader_emails)} 封领导邮件")
-        logger.info(f"获取到 {len(pm_emails)} 封项目经理邮件")
-        logger.info(f"获取到 {len(employee_emails)} 封员工邮件")
+        logger.info(f"领导: {len(leader_emails)} | 项目经理: {len(pm_emails)} | 员工: {len(employee_emails)}")
+        logger.info(f"客户: {len(customer_emails)} | 供应商: {len(supplier_emails)}")
         
         total_emails = len(all_emails)
         
@@ -124,19 +134,31 @@ def main():
             client.disconnect_imap()
             return
         
-        # V4.0新增：AI分析邮件
+        # V4.0新增：AI分析邮件（根据类型定制分析）
         if ai_analyzer.is_available():
             logger.info("=" * 50)
             logger.info("🤖 开始AI智能分析...")
             logger.info("=" * 50)
             
-            # 对所有邮件进行AI分析
-            all_emails = ai_analyzer.analyze_emails_batch(all_emails)
+            # 创建发件人类型映射
+            sender_type_map = {}
+            for email in customers.keys():
+                sender_type_map[email] = 'customer'
+            for email in suppliers.keys():
+                sender_type_map[email] = 'supplier'
+            
+            # 对所有邮件进行AI分析（传入类型映射）
+            all_emails = ai_analyzer.analyze_emails_batch(all_emails, sender_type_map)
             
             # 重新分类（因为邮件对象已更新）
             leader_emails = [e for e in all_emails if e['from_email'].lower() in leader_emails_lower]
-            pm_emails = [e for e in all_emails if e['from_email'].lower() in pm_emails_lower and e['from_email'].lower() not in leader_emails_lower]
-            employee_emails = [e for e in all_emails if e['from_email'].lower() not in leader_emails_lower and e['from_email'].lower() not in pm_emails_lower]
+            pm_emails = [e for e in all_emails if e['from_email'].lower() in pm_emails_lower]
+            customer_emails = [e for e in all_emails if e['from_email'].lower() in customer_emails_lower]
+            supplier_emails = [e for e in all_emails if e['from_email'].lower() in supplier_emails_lower]
+            employee_emails = [e for e in all_emails if e['from_email'].lower() not in leader_emails_lower 
+                              and e['from_email'].lower() not in pm_emails_lower
+                              and e['from_email'].lower() not in customer_emails_lower
+                              and e['from_email'].lower() not in supplier_emails_lower]
         
         # 分析员工邮件中的重复问题
         analyzer = EmailAnalyzer(repeat_days=repeat_issue_days)
@@ -150,10 +172,11 @@ def main():
             else:
                 logger.info("✅ 未发现重复问题")
         
-        # 生成摘要
+        # 生成摘要（5类人员）
         logger.info("正在生成邮件摘要...")
-        summary = analyzer.generate_summary(leaders, project_managers, employees,
-                                            leader_emails, pm_emails, employee_emails,
+        summary = analyzer.generate_summary(leaders, project_managers, employees, customers, suppliers,
+                                            leader_emails, pm_emails, employee_emails, 
+                                            customer_emails, supplier_emails,
                                             employee_repeat_issues)
         
         # 生成AI增强报告

@@ -61,11 +61,12 @@ class AIAnalyzer:
         """检查AI功能是否可用"""
         return self.enabled and self.client is not None
     
-    def analyze_email(self, email_item):
-        """分析单封邮件（带缓存）
+    def analyze_email(self, email_item, sender_type='normal'):
+        """分析单封邮件（带缓存和类型识别）
         
         Args:
             email_item: 邮件数据字典
+            sender_type: 发件人类型 (normal/customer/supplier)
             
         Returns:
             包含AI分析结果的字典
@@ -88,10 +89,17 @@ class AIAnalyzer:
             
             # 缓存未命中，调用AI
             self.api_calls += 1
-            logger.info(f"        → 调用AI API...")
             
-            # 构建提示词
-            prompt = self._build_prompt(sender_name, subject, body)
+            # 根据发件人类型显示不同的提示
+            if sender_type == 'customer':
+                logger.info(f"        → 调用AI API (客户需求分析)...")
+            elif sender_type == 'supplier':
+                logger.info(f"        → 调用AI API (供应商邮件分析)...")
+            else:
+                logger.info(f"        → 调用AI API...")
+            
+            # 构建提示词（传入类型）
+            prompt = self._build_prompt(sender_name, subject, body, sender_type)
             
             # 调用AI
             if self.provider == 'openai':
@@ -114,9 +122,74 @@ class AIAnalyzer:
             logger.error(f"AI分析失败: {str(e)}")
             return None
     
-    def _build_prompt(self, sender_name, subject, body):
-        """构建AI分析提示词"""
-        prompt = f"""你是一个专业的邮件助手，请分析以下邮件并提供结构化的分析结果。
+    def _build_prompt(self, sender_name, subject, body, sender_type='normal'):
+        """构建AI分析提示词
+        
+        Args:
+            sender_name: 发件人姓名
+            subject: 邮件主题
+            body: 邮件内容
+            sender_type: 发件人类型 (normal/customer/supplier)
+        """
+        
+        # 客户邮件特殊分析
+        if sender_type == 'customer':
+            prompt = f"""你是一个专业的技术需求分析师，请分析客户的需求邮件。
+
+客户: {sender_name}
+主题: {subject}
+内容:
+{body[:1000]}
+
+请按照以下JSON格式返回分析结果：
+{{
+  "summary": "需求简述（1-2句话）",
+  "priority": "high/medium/low",
+  "urgency": "urgent/normal/low",
+  "feasibility": "技术可行性评估（简短）",
+  "implementation": "实现方法建议（关键点，2-3条）",
+  "suggestions": "简洁建议（1-2句话）",
+  "action_items": ["需要执行的行动"],
+  "deadline": "截止时间（如果有）",
+  "tags": ["需求类型", "涉及模块"]
+}}
+
+注意：
+1. 重点分析技术可行性和实现方法
+2. 建议要简洁，只说关键点
+3. 识别是新功能、bug修复还是改进
+4. 只返回JSON，不要其他内容
+"""
+        # 供应商邮件特殊分析  
+        elif sender_type == 'supplier':
+            prompt = f"""你是一个专业的供应链管理助手，请分析供应商邮件。
+
+供应商: {sender_name}
+主题: {subject}
+内容:
+{body[:1000]}
+
+请按照以下JSON格式返回分析结果：
+{{
+  "summary": "简述（1-2句话）",
+  "priority": "high/medium/low",
+  "urgency": "urgent/normal/low",
+  "response_needed": "是否需要回复（是/否）",
+  "action_items": ["需要执行的行动"],
+  "key_info": "关键信息（简短）",
+  "deadline": "截止时间（如果有）",
+  "tags": ["邮件类型"]
+}}
+
+注意：
+1. 识别是技术支持、交付信息还是商务沟通
+2. 提取关键时间节点
+3. 判断是否需要及时回复
+4. 只返回JSON，不要其他内容
+"""
+        # 普通邮件分析
+        else:
+            prompt = f"""你是一个专业的邮件助手，请分析以下邮件并提供结构化的分析结果。
 
 发件人: {sender_name}
 主题: {subject}
@@ -200,11 +273,12 @@ class AIAnalyzer:
                 'tags': []
             }
     
-    def analyze_emails_batch(self, emails):
-        """批量分析邮件
+    def analyze_emails_batch(self, emails, sender_type_map=None):
+        """批量分析邮件（支持不同类型）
         
         Args:
             emails: 邮件列表
+            sender_type_map: 发件人类型映射 {email: type}
             
         Returns:
             带有AI分析的邮件列表
@@ -225,8 +299,14 @@ class AIAnalyzer:
                 subject = email_item.get('subject', 'unknown')[:30]
                 logger.info(f"  [{i}/{len(emails)}] 正在分析: {subject}")
                 
-                # 调用AI分析
-                analysis = self.analyze_email(email_item)
+                # 确定发件人类型
+                sender_email = email_item.get('from_email', '')
+                sender_type = 'normal'
+                if sender_type_map:
+                    sender_type = sender_type_map.get(sender_email, 'normal')
+                
+                # 调用AI分析（传入类型）
+                analysis = self.analyze_email(email_item, sender_type)
                 
                 if analysis:
                     email_item['ai_analysis'] = analysis
