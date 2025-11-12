@@ -83,11 +83,12 @@ class AIAnalyzer:
             cached_analysis = self.cache.get(email_id, subject, body)
             if cached_analysis:
                 self.cache_hits += 1
-                logger.debug(f"使用缓存: {subject[:30]}")
+                logger.info(f"        → 使用缓存 ✓")
                 return cached_analysis
             
             # 缓存未命中，调用AI
             self.api_calls += 1
+            logger.info(f"        → 调用AI API...")
             
             # 构建提示词
             prompt = self._build_prompt(sender_name, subject, body)
@@ -101,6 +102,7 @@ class AIAnalyzer:
                 return None
             
             # 解析结果
+            logger.info(f"        → AI响应成功 ✓")
             analysis = self._parse_result(result)
             
             # 保存到缓存
@@ -212,15 +214,16 @@ class AIAnalyzer:
             return emails
         
         logger.info(f"开始AI分析 {len(emails)} 封邮件...")
+        logger.info(f"提示：AI分析需要一些时间，请耐心等待...")
         
         analyzed_emails = []
         success_count = 0
         
         for i, email_item in enumerate(emails, 1):
             try:
-                # 显示进度
-                if i % 5 == 0:
-                    logger.info(f"  AI分析进度: {i}/{len(emails)}")
+                # 更详细的进度显示
+                subject = email_item.get('subject', 'unknown')[:30]
+                logger.info(f"  [{i}/{len(emails)}] 正在分析: {subject}")
                 
                 # 调用AI分析
                 analysis = self.analyze_email(email_item)

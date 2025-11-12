@@ -166,23 +166,33 @@ class EmailClient:
                     return []
                 
             # 处理邮件
+            logger.info(f"开始处理邮件，总共 {len(recent_email_ids)} 封")
             processed = 0
+            
             for email_id in recent_email_ids:
                 try:
                     processed += 1
-                    if processed % 50 == 0:
-                        logger.info(f"已处理 {processed}/{len(recent_email_ids)} 封邮件...")
                     
+                    # 更频繁的进度显示
+                    if processed == 1 or processed % 10 == 0 or processed == len(recent_email_ids):
+                        logger.info(f"处理进度: {processed}/{len(recent_email_ids)} 封...")
+                    
+                    # 获取邮件（可能耗时）
+                    logger.debug(f"正在获取邮件 #{processed}")
                     status, msg_data = self.imap_conn.fetch(email_id, "(RFC822)")
                     if status != "OK":
+                        logger.warning(f"邮件 #{processed} 获取失败")
                         continue
                     
+                    logger.debug(f"正在解析邮件 #{processed}")
                     msg = email.message_from_bytes(msg_data[0][1])
                     
                     # 提取邮件信息
                     subject = self.decode_mime_words(msg.get("Subject", ""))
                     from_addr = self.decode_mime_words(msg.get("From", ""))
                     date_str = msg.get("Date", "")
+                    
+                    logger.debug(f"邮件 #{processed}: {subject[:30]}")
                     
                     # 解析日期
                     try:
@@ -214,8 +224,13 @@ class EmailClient:
                     # 获取发件人姓名
                     original_email, sender_name = sender_emails_lower[sender_email]
                     
-                    # 获取邮件正文
+                    # 获取邮件正文（限制大小，避免过大邮件）
                     body = self.get_email_body(msg)
+                    
+                    # 限制邮件内容大小（避免处理超大邮件）
+                    if len(body) > 10000:
+                        body = body[:10000] + "\n...(内容过长，已截断)"
+                        logger.debug(f"邮件内容过长，已截断: {subject[:30]}")
                     
                     # 清理邮件内容（V3.0新增）
                     body = self.content_cleaner.clean_email_body(body)
@@ -231,12 +246,15 @@ class EmailClient:
                     })
                         
                 except Exception as e:
-                    logger.error(f"解析邮件失败: {str(e)}")
+                    logger.error(f"解析邮件 #{processed} 失败: {str(e)}")
                     continue
             
+            logger.info(f"邮件获取循环完成，共处理 {processed} 封")
+            
             # 按日期排序
+            logger.info(f"正在排序邮件...")
             emails_data.sort(key=lambda x: x['date'], reverse=True)
-            logger.info(f"总共筛选出 {len(emails_data)} 封符合条件的邮件")
+            logger.info(f"✅ 总共筛选出 {len(emails_data)} 封符合条件的邮件")
             
             return emails_data
             
