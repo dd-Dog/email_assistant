@@ -1,6 +1,6 @@
 """
 项目文档加载器 - V5.1
-支持从文件夹加载多种格式的项目文档
+支持从文件夹加载多种格式的项目文档（TXT/MD/DOCX/XLSX）
 """
 import os
 import logging
@@ -9,11 +9,26 @@ from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+# 可选依赖
+try:
+    from docx import Document
+    DOCX_AVAILABLE = True
+except ImportError:
+    DOCX_AVAILABLE = False
+    logger.warning("python-docx 未安装，无法读取Word文档。请运行: pip install python-docx")
+
+try:
+    from openpyxl import load_workbook
+    EXCEL_AVAILABLE = True
+except ImportError:
+    EXCEL_AVAILABLE = False
+    logger.warning("openpyxl 未安装，无法读取Excel文档。请运行: pip install openpyxl")
+
 
 class ProjectDocLoader:
-    """项目文档加载器"""
+    """项目文档加载器（支持TXT/MD/DOCX/XLSX）"""
     
-    SUPPORTED_FORMATS = ['.txt', '.md', '.markdown']
+    SUPPORTED_FORMATS = ['.txt', '.md', '.markdown', '.docx', '.xlsx', '.xls']
     
     def __init__(self, projects_root='projects'):
         """初始化项目文档加载器
@@ -100,7 +115,7 @@ class ProjectDocLoader:
         return None
     
     def _load_file_content(self, file_path):
-        """加载文件内容
+        """加载文件内容（支持多种格式）
         
         Args:
             file_path: 文件路径
@@ -108,6 +123,27 @@ class ProjectDocLoader:
         Returns:
             文件内容字符串
         """
+        ext = os.path.splitext(file_path)[1].lower()
+        
+        try:
+            # Word文档
+            if ext == '.docx':
+                return self._load_docx(file_path)
+            
+            # Excel文档
+            elif ext in ['.xlsx', '.xls']:
+                return self._load_excel(file_path)
+            
+            # 纯文本和Markdown
+            else:
+                return self._load_text(file_path)
+                
+        except Exception as e:
+            logger.error(f"读取文件失败 {file_path}: {str(e)}")
+            return None
+    
+    def _load_text(self, file_path):
+        """加载文本文件（TXT/MD）"""
         try:
             # 尝试UTF-8编码
             with open(file_path, 'r', encoding='utf-8') as f:
@@ -118,10 +154,65 @@ class ProjectDocLoader:
                 with open(file_path, 'r', encoding='gbk') as f:
                     return f.read()
             except Exception as e:
-                logger.error(f"读取文件失败 {file_path}: {str(e)}")
+                logger.error(f"读取文本文件失败 {file_path}: {str(e)}")
                 return None
+    
+    def _load_docx(self, file_path):
+        """加载Word文档（DOCX）"""
+        if not DOCX_AVAILABLE:
+            logger.warning(f"跳过Word文档 {file_path}（需要安装 python-docx）")
+            return None
+        
+        try:
+            doc = Document(file_path)
+            
+            # 提取所有段落
+            content_parts = []
+            for para in doc.paragraphs:
+                text = para.text.strip()
+                if text:
+                    content_parts.append(text)
+            
+            # 提取表格内容
+            for table in doc.tables:
+                content_parts.append("\n[表格内容]")
+                for row in table.rows:
+                    row_text = " | ".join(cell.text.strip() for cell in row.cells)
+                    if row_text.strip():
+                        content_parts.append(row_text)
+            
+            return '\n'.join(content_parts)
+            
         except Exception as e:
-            logger.error(f"读取文件失败 {file_path}: {str(e)}")
+            logger.error(f"读取Word文档失败 {file_path}: {str(e)}")
+            return None
+    
+    def _load_excel(self, file_path):
+        """加载Excel文档（XLSX/XLS）"""
+        if not EXCEL_AVAILABLE:
+            logger.warning(f"跳过Excel文档 {file_path}（需要安装 openpyxl）")
+            return None
+        
+        try:
+            workbook = load_workbook(file_path, data_only=True)
+            content_parts = []
+            
+            # 遍历所有工作表
+            for sheet_name in workbook.sheetnames:
+                sheet = workbook[sheet_name]
+                content_parts.append(f"\n=== 工作表: {sheet_name} ===\n")
+                
+                # 读取所有行
+                for row in sheet.iter_rows(values_only=True):
+                    # 过滤空行
+                    row_values = [str(cell) if cell is not None else '' for cell in row]
+                    if any(val.strip() for val in row_values):
+                        content_parts.append(" | ".join(row_values))
+            
+            return '\n'.join(content_parts)
+            
+        except Exception as e:
+            logger.error(f"读取Excel文档失败 {file_path}: {str(e)}")
             return None
     
     def _generate_summary(self, project_data):
