@@ -161,7 +161,7 @@ class AIReportGenerator:
                 if total_count == 0:
                     continue
                 
-                lines.append(f"▸ {sender_name} ({sender_email}) - {total_count}封")
+                lines.append(f"▸ 【{sender_name}】({sender_email}) - {total_count}封")
                 
                 # 按日期排序，日期和邮件内容紧凑显示
                 sorted_dates = sorted(days_data.keys(), reverse=True)
@@ -230,7 +230,7 @@ class AIReportGenerator:
                 for sender_email, days_data in filtered_customer_data.items():
                     sender_name = summary.get('customers', {}).get(sender_email, {}).get('name', sender_email)
                     total_count = sum(len(emails) for emails in days_data.values())
-                    lines.append(f"▸ {sender_name} ({sender_email}) - {total_count}封")
+                    lines.append(f"▸ 【{sender_name}】({sender_email}) - {total_count}封")
                     
                     sorted_dates = sorted(days_data.keys(), reverse=True)
                     for date_key in sorted_dates:
