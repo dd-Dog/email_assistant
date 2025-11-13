@@ -1,10 +1,11 @@
 """
-人员信息管理模块 - V5.0
-管理和查询人员的详细信息
+人员信息管理模块 - V5.2
+管理和查询人员的详细信息（支持文件加载）
 """
 import json
 import os
 import logging
+from person_file_loader import PersonFileLoader
 
 logger = logging.getLogger(__name__)
 
@@ -12,30 +13,49 @@ logger = logging.getLogger(__name__)
 class PersonManager:
     """人员信息管理器"""
     
-    def __init__(self, profiles_file='profiles.json'):
-        """初始化人员管理器
+    def __init__(self, profiles_file='profiles.json', persons_root='persons'):
+        """初始化人员管理器（V5.2：支持文件加载）
         
         Args:
-            profiles_file: 人员信息配置文件
+            profiles_file: 人员信息配置文件（JSON）
+            persons_root: 人员信息文件夹
         """
         self.profiles_file = profiles_file
+        self.persons_root = persons_root
         self.persons = {}
+        
+        # V5.2：从文件加载人员信息
+        self.file_loader = PersonFileLoader(persons_root)
+        
         self._load_profiles()
     
     def _load_profiles(self):
-        """加载人员信息"""
+        """加载人员信息（V5.2：优先从文件加载）"""
+        # 优先从文件加载
+        file_persons = self.file_loader.get_all_persons()
+        if file_persons:
+            self.persons.update(file_persons)
+            logger.info(f"✅ 从文件加载了 {len(file_persons)} 个人员信息")
+        
+        # 再从JSON加载（兼容旧版本）
         try:
             if os.path.exists(self.profiles_file):
                 with open(self.profiles_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                    self.persons = data.get('persons', {})
-                logger.info(f"✅ 加载了 {len(self.persons)} 个人员信息")
-            else:
-                logger.warning(f"人员信息文件不存在: {self.profiles_file}")
-                self.persons = {}
+                    json_persons = data.get('persons', {})
+                    
+                    # 合并（文件优先级更高）
+                    for email, person in json_persons.items():
+                        if email not in self.persons:
+                            self.persons[email] = person
+                    
+                    if json_persons:
+                        logger.info(f"✅ 从JSON加载了 {len(json_persons)} 个人员信息")
         except Exception as e:
-            logger.error(f"加载人员信息失败: {str(e)}")
-            self.persons = {}
+            logger.error(f"从JSON加载人员信息失败: {str(e)}")
+        
+        if not self.persons:
+            logger.info("ℹ️  未找到人员信息")
     
     def get_person_info(self, email):
         """获取人员信息

@@ -5,6 +5,12 @@ profiles.json
 # V5.1：项目文档（可能包含敏感信息）
 projects/*/
 
+# V5.2：人员信息（敏感信息）
+persons/*.xlsx
+persons/*.md
+persons/*.txt
+!persons/*.example.*
+
 # 日志文件
 *.log
 
