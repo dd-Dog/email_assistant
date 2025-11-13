@@ -101,8 +101,8 @@ class AIReportGenerator:
                     priority_info = f"[{self.get_priority_text(ai.get('priority'))}优先]"
                     urgency_info = f"[{self.get_urgency_text(ai.get('urgency'))}]"
                     
-                    lines.append(f">> 【{sender_display}】 {email_item['subject']}")
-                    lines.append(f"  {time_info} | {priority_info} | {urgency_info}")
+                    lines.append(f">> {sender_display}")
+                    lines.append(f"  {time_info} {email_item['subject']} [优先级:{self.get_priority_text(ai.get('priority'))} | 紧急度:{self.get_urgency_text(ai.get('urgency'))}]")
                     
                     if ai.get('summary'):
                         lines.append(f"  摘要: {ai['summary']}")
@@ -163,7 +163,7 @@ class AIReportGenerator:
                 if total_count == 0:
                     continue
                 
-                lines.append(f">> 【{sender_name}】({sender_email}) - {total_count}封")
+                lines.append(f">> {sender_name}({sender_email}) - {total_count}封")
                 
                 # 按日期排序，日期和邮件内容紧凑显示
                 sorted_dates = sorted(days_data.keys(), reverse=True)
@@ -234,7 +234,7 @@ class AIReportGenerator:
                 for sender_email, days_data in filtered_customer_data.items():
                     sender_name = summary.get('customers', {}).get(sender_email, {}).get('name', sender_email)
                     total_count = sum(len(emails) for emails in days_data.values())
-                    lines.append(f">> 【{sender_name}】({sender_email}) - {total_count}封")
+                    lines.append(f">> {sender_name}({sender_email}) - {total_count}封")
                     
                     sorted_dates = sorted(days_data.keys(), reverse=True)
                     for date_key in sorted_dates:
