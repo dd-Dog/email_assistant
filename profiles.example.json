@@ -1,113 +1,145 @@
 {
   "persons": {
-    "customer@company.com": {
+    "customer@example.com": {
       "name": "客户张总",
       "type": "customer",
-      "company": "XX科技有限公司",
-      "role": "CTO",
-      "skills": ["嵌入式系统", "物联网", "系统架构"],
+      "company": "深圳XX科技有限公司",
+      "role": "CTO/技术总监",
+      "skills": ["嵌入式系统", "物联网", "Android开发", "硬件选型", "系统架构"],
       "experience_years": 15,
       "education": "博士",
       "technical_level": "expert",
-      "projects": ["项目A", "项目B"],
-      "communication_style": "技术导向，喜欢详细方案",
-      "priorities": ["质量", "稳定性", "性能"],
-      "notes": "技术背景深厚，可以深入讨论技术细节"
+      "projects": ["G20项目", "889项目"],
+      "communication_style": "技术导向，喜欢深入讨论技术细节和原理",
+      "priorities": ["产品质量", "系统稳定性", "长期维护性"],
+      "notes": "技术背景深厚，曾在华为工作10年，可以进行深度技术讨论"
     },
-    "supplier@vendor.com": {
-      "name": "供应商李工",
+    "customer2@example.com": {
+      "name": "客户李经理",
+      "type": "customer",
+      "company": "广州YY电子",
+      "role": "项目经理",
+      "technical_level": "basic",
+      "projects": ["8088项目"],
+      "communication_style": "偏向商务，需要简化技术说明",
+      "priorities": ["交付时间", "成本控制", "易用性"],
+      "notes": "技术背景较弱，更关注项目进度和商务条款"
+    },
+    "supplier@unisoc.com": {
+      "name": "孟瑜",
       "type": "supplier",
-      "company": "芯片厂商A",
-      "role": "FAE工程师",
-      "skills": ["芯片集成", "驱动开发", "技术支持"],
-      "responsible_products": ["XX芯片", "YY模组"],
-      "response_time": "24小时",
-      "notes": "响应及时，技术支持很好"
+      "company": "展锐",
+      "role": "技术支持",
+      "skills": ["展锐芯片", "T310", "T610", "Android BSP"],
+      "projects": ["G20项目", "889项目"],
+      "notes": "展锐芯片的主要技术联系人"
+    },
+    "leader@company.com": {
+      "name": "王总",
+      "type": "leader",
+      "company": "飞思卡尔",
+      "role": "总经理",
+      "responsibilities": "公司整体战略和重大决策",
+      "notes": "关注公司发展方向和重大项目进展"
     },
     "pm@company.com": {
-      "name": "项目经理王",
-      "type": "project_manager",
-      "role": "高级项目经理",
-      "experience_years": 8,
-      "skills": ["项目管理", "需求分析", "客户沟通"],
-      "projects": ["项目C", "项目D"],
-      "responsibilities": "负责整机项目的进度和质量管控",
-      "management_style": "注重细节，强调流程",
-      "notes": "擅长客户沟通和团队协调"
+      "name": "项目经理张三",
+      "type": "pm",
+      "company": "飞思卡尔",
+      "role": "项目经理",
+      "projects": ["G20项目"],
+      "responsibilities": "G20项目的进度、质量、风险管理",
+      "notes": "经验丰富的项目管理专家"
     },
-    "dev@company.com": {
-      "name": "开发张工",
+    "employee@company.com": {
+      "name": "工程师李四",
       "type": "employee",
-      "role": "软件工程师",
-      "skills": ["C/C++", "Linux驱动", "Android应用"],
-      "experience_years": 5,
-      "education": "本科",
-      "specialties": ["底层驱动", "性能优化"],
-      "current_tasks": ["G20项目开发", "889问题修复"],
-      "notes": "技术扎实，执行力强"
+      "company": "飞思卡尔",
+      "role": "高级软件工程师",
+      "skills": ["Android开发", "C/C++", "Linux驱动"],
+      "projects": ["G20项目", "889项目"],
+      "responsibilities": "负责Android应用层和驱动开发",
+      "notes": "技术能力强，工作认真负责"
     }
   },
   "projects": {
     "G20": {
-      "full_name": "G20智能终端整机项目",
-      "code": "G20",
+      "full_name": "G20智能终端项目",
+      "name": "G20智能终端",
       "status": "testing",
-      "customer": "客户A公司",
-      "customer_email": "customer@company.com",
-      "start_date": "2025-10-01",
-      "deadline": "2025-12-31",
-      "current_phase": "集成测试阶段",
+      "customer": "深圳九胜",
+      "current_phase": "系统集成测试",
       "progress": "85%",
-      "team": {
-        "pm": "chenqi@flyscale.cn",
-        "developers": ["xingpp@flyscale.cn", "lichang@flyscale.cn"],
-        "testers": ["wangyx@flyscale.cn"]
-      },
       "tech_stack": {
         "hardware": "展锐T310芯片",
         "os": "Android 11",
-        "modules": ["4G通信", "GPS", "音视频"]
+        "display": "4寸屏",
+        "storage": "32GB eMMC",
+        "camera": "500万像素",
+        "connectivity": "4G、WiFi、蓝牙、GPS"
       },
       "key_features": [
-        "高清视频通话",
-        "本地录音录像",
-        "GPS实时定位",
-        "4G全网通"
+        "视频通话",
+        "高清录音",
+        "GPS定位",
+        "蓝牙对讲",
+        "4G数据传输"
       ],
       "current_issues": [
-        "网络稳定性优化",
-        "功耗问题",
-        "录音音量偏小"
+        "网络切换时的稳定性问题",
+        "长时间运行的功耗优化",
+        "音频回声消除效果待提升"
       ],
-      "milestones": {
-        "需求确认": "2025-10-15",
-        "原型开发": "2025-11-01",
-        "集成测试": "2025-11-20",
-        "交付": "2025-12-31"
-      },
-      "notes": "客户对质量要求严格，需要充分测试"
+      "deadline": "2025-12-31",
+      "notes": "客户对质量要求很高，需要充分测试"
     },
     "889": {
-      "full_name": "889设备音频问题修复",
-      "code": "889",
-      "type": "bug_fix",
-      "status": "in_progress",
-      "priority": "high",
-      "customer": "内部测试",
-      "issue_date": "2025-11-08",
-      "deadline": "2025-11-15",
-      "assigned_to": "wangyx@flyscale.cn",
-      "description": "889设备存在两个音频问题：1.录音声音小 2.通话质量差",
-      "root_cause": "待分析",
-      "related_components": ["音频驱动", "ALSA配置", "麦克风增益"],
-      "impact": "影响产品质量，客户反馈",
-      "notes": "已持续3天，需要加快解决"
+      "full_name": "889通信模块项目",
+      "name": "889通信模块",
+      "status": "development",
+      "customer": "广州YY电子",
+      "current_phase": "软件开发",
+      "progress": "60%",
+      "tech_stack": {
+        "hardware": "展锐T610芯片",
+        "os": "Android 12",
+        "connectivity": "5G、WiFi6、蓝牙5.2"
+      },
+      "key_features": [
+        "5G通信",
+        "WiFi6高速传输",
+        "低功耗模式"
+      ],
+      "current_issues": [
+        "5G网络兼容性测试不足",
+        "WiFi6性能未达到预期"
+      ],
+      "deadline": "2026-03-31",
+      "notes": "新项目，技术难度较大"
+    },
+    "8088": {
+      "full_name": "8088物联网网关",
+      "name": "8088网关",
+      "status": "planning",
+      "customer": "广州YY电子",
+      "current_phase": "需求分析",
+      "progress": "20%",
+      "tech_stack": {
+        "hardware": "待定",
+        "os": "Linux"
+      },
+      "key_features": [
+        "多协议支持",
+        "边缘计算",
+        "云端管理"
+      ],
+      "deadline": "2026-06-30",
+      "notes": "前期规划阶段"
     }
   },
   "project_keywords": {
-    "G20": ["G20", "g20", "G20项目"],
-    "889": ["889", "8088"],
-    "orange": ["orange", "Orange"]
+    "G20": ["G20", "g20", "G20项目", "G20终端", "九胜"],
+    "889": ["889", "889项目", "889模块"],
+    "8088": ["8088", "8088项目", "8088网关"]
   }
 }
-
