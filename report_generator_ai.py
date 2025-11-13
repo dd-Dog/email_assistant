@@ -23,14 +23,14 @@ class AIReportGenerator:
         """只格式化时间"""
         return date.strftime("%H:%M")
     
-    def get_priority_emoji(self, priority):
-        """获取优先级emoji"""
+    def get_priority_text(self, priority):
+        """获取优先级文本（V5.3：去掉emoji）"""
         priority_map = {
-            'high': '🔴',
-            'medium': '🟡',
-            'low': '🟢'
+            'high': '高',
+            'medium': '中',
+            'low': '低'
         }
-        return priority_map.get(priority, '⚪')
+        return priority_map.get(priority, '中')
     
     def get_urgency_text(self, urgency):
         """获取紧急程度文本"""
@@ -52,7 +52,7 @@ class AIReportGenerator:
         
         lines = []
         lines.append("=" * 70)
-        title = "📧 AI邮件助手每日报告 V5.0" if ai_enabled else "📧 邮件助手每日报告 V3.0"
+        title = "AI邮件助手每日报告 V5.3" if ai_enabled else "邮件助手每日报告 V3.0"
         lines.append(title)
         lines.append("=" * 70)
         
@@ -66,9 +66,9 @@ class AIReportGenerator:
                     f"客户: {summary['customer_count']} | " +
                     f"供应商: {summary['supplier_count']}")
         if summary['repeat_issues']:
-            lines.append(f"⚠️  重复问题: {len(summary['repeat_issues'])} 个")
+            lines.append(f"[重要] 重复问题: {len(summary['repeat_issues'])} 个")
         if ai_enabled:
-            lines.append("🤖 AI分析已启用")
+            lines.append("[AI分析已启用]")
         lines.append("")
         
         # AI识别的高优先级邮件（V4.0新增）
@@ -89,7 +89,7 @@ class AIReportGenerator:
             
             if high_priority_emails:
                 lines.append("")
-                lines.append("█ 🔴 高优先级邮件（需立即处理）")
+                lines.append("======== 高优先级邮件（需立即处理） ========")
                 lines.append("")
                 
                 for email_item in high_priority_emails[:5]:  # 最多显示5封
@@ -98,27 +98,28 @@ class AIReportGenerator:
                     
                     # 紧凑格式：一行显示多个信息
                     time_info = f"{self.format_date_only(email_item['date'])} {self.format_time_only(email_item['date'])}"
-                    priority_info = f"{self.get_priority_emoji(ai.get('priority'))}高优先"
-                    urgency_info = f"⏰{self.get_urgency_text(ai.get('urgency'))}"
+                    priority_info = f"[{self.get_priority_text(ai.get('priority'))}优先]"
+                    urgency_info = f"[{self.get_urgency_text(ai.get('urgency'))}]"
                     
-                    lines.append(f"▸ [{sender_display}] {email_item['subject']}")
+                    lines.append(f">> 【{sender_display}】 {email_item['subject']}")
                     lines.append(f"  {time_info} | {priority_info} | {urgency_info}")
                     
                     if ai.get('summary'):
-                        lines.append(f"  💡 {ai['summary']}")
+                        lines.append(f"  摘要: {ai['summary']}")
                     
                     if ai.get('action_items'):
-                        for action in ai['action_items'][:3]:
-                            lines.append(f"  ✓ {action}")
+                        lines.append(f"  行动项:")
+                        for idx, action in enumerate(ai['action_items'][:3], 1):
+                            lines.append(f"    {idx}. {action}")
                     
                     if ai.get('deadline'):
-                        lines.append(f"  📅 {ai['deadline']}")
+                        lines.append(f"  截止时间: {ai['deadline']}")
                 lines.append("")
         
         # 重复问题（保持原有逻辑）
         if summary['repeat_issues']:
             lines.append("")
-            lines.append("█ 🚨 连续3天未解决的问题")
+            lines.append("======== 连续3天未解决的问题 ========")
             lines.append("")
             
             for idx, issue in enumerate(summary['repeat_issues'], 1):
@@ -152,7 +153,7 @@ class AIReportGenerator:
                 return
             
             lines.append("")
-            lines.append(f"█ {emoji} {title}")  # 醒目标题，无分隔线
+            lines.append(f"======== {title} ========")
             lines.append("")
             
             for sender_email, days_data in person_data.items():
@@ -181,20 +182,22 @@ class AIReportGenerator:
                         # 超紧凑格式：日期+时间+主题+标签一行显示
                         if ai_enabled and email_item.get('ai_analysis'):
                             ai = email_item['ai_analysis']
-                            priority_emoji = self.get_priority_emoji(ai.get('priority'))
+                            priority_text = self.get_priority_text(ai.get('priority'))
                             urgency = self.get_urgency_text(ai.get('urgency'))
-                            lines.append(f"  {date_str} {time_str} {subject} [{priority_emoji}{urgency}]")
+                            lines.append(f"  {date_str} {time_str} {subject} [优先级:{priority_text} 紧急度:{urgency}]")
                             
                             # AI摘要（紧凑）
                             if ai.get('summary'):
                                 summary_text = ai['summary'][:100]
-                                lines.append(f"    💡 {summary_text}")
+                                lines.append(f"    摘要: {summary_text}")
                             
-                            # 行动项（一行显示，用|分隔）
+                            # 行动项（使用数字序号）
                             if ai.get('action_items'):
-                                actions = " | ".join(ai['action_items'][:2])
-                                if actions:
-                                    lines.append(f"    ✓ {actions[:80]}")
+                                action_items = ai['action_items'][:3]
+                                if action_items:
+                                    lines.append(f"    行动项:")
+                                    for idx, action in enumerate(action_items, 1):
+                                        lines.append(f"      {idx}. {action[:60]}")
                         else:
                             lines.append(f"  {date_str} {time_str} {subject}")
                             # 原始内容（紧凑显示）
@@ -225,13 +228,13 @@ class AIReportGenerator:
                 customer_count_filtered = sum(len(e) for days in filtered_customer_data.values() for e in days.values())
                 
                 lines.append("")
-                lines.append(f"█ 🏢 客户需求邮件 ({customer_count_filtered}封) - AI需求分析")
+                lines.append(f"======== 客户需求邮件 ({customer_count_filtered}封) - AI需求分析 ========")
                 lines.append("")
                 
                 for sender_email, days_data in filtered_customer_data.items():
                     sender_name = summary.get('customers', {}).get(sender_email, {}).get('name', sender_email)
                     total_count = sum(len(emails) for emails in days_data.values())
-                    lines.append(f"▸ 【{sender_name}】({sender_email}) - {total_count}封")
+                    lines.append(f">> 【{sender_name}】({sender_email}) - {total_count}封")
                     
                     sorted_dates = sorted(days_data.keys(), reverse=True)
                     for date_key in sorted_dates:
@@ -247,7 +250,7 @@ class AIReportGenerator:
                             
                             if ai_enabled and email_item.get('ai_analysis'):
                                 ai = email_item['ai_analysis']
-                                priority_emoji = self.get_priority_emoji(ai.get('priority'))
+                                priority_text = self.get_priority_text(ai.get('priority'))
                                 urgency = self.get_urgency_text(ai.get('urgency'))
                                 
                                 # V5.1：显示项目标签和关键词标签
@@ -262,36 +265,37 @@ class AIReportGenerator:
                                         ai['keyword_result']
                                     )
                                 
-                                lines.append(f"  {date_str} {time_str} {subject} [{priority_emoji}{urgency}]{project_tag}{keyword_tag}")
+                                lines.append(f"  {date_str} {time_str} {subject} [优先级:{priority_text} 紧急度:{urgency}]{project_tag}{keyword_tag}")
                                 
                                 # V5.0：显示项目信息
                                 if ai.get('detected_projects'):
                                     for proj_code in ai['detected_projects']:
                                         proj_brief = self.context_builder.get_project_brief_for_display(proj_code)
-                                        lines.append(f"    📋 {proj_brief}")
+                                        lines.append(f"    [项目] {proj_brief}")
                                 
                                 # 客户邮件特殊显示：需求分析
                                 if ai.get('summary'):
-                                    lines.append(f"    📝 需求: {ai['summary']}")
+                                    lines.append(f"    [需求] {ai['summary']}")
                                 
                                 if ai.get('feasibility'):
-                                    lines.append(f"    ⚙️  可行性: {ai['feasibility']}")
+                                    lines.append(f"    [可行性] {ai['feasibility']}")
                                 
                                 if ai.get('implementation'):
                                     impl = ai['implementation']
                                     if isinstance(impl, list):
-                                        impl_text = " | ".join(impl[:3])
+                                        lines.append(f"    [实现方法]")
+                                        for idx, item in enumerate(impl[:3], 1):
+                                            lines.append(f"      {idx}. {item}")
                                     else:
-                                        impl_text = impl[:100]
-                                    lines.append(f"    🔧 实现: {impl_text}")
+                                        lines.append(f"    [实现] {impl[:100]}")
                                 
                                 if ai.get('suggestions'):
-                                    lines.append(f"    💡 建议: {ai['suggestions']}")
+                                    lines.append(f"    [建议] {ai['suggestions']}")
                                 
                                 if ai.get('action_items'):
-                                    actions = " | ".join(ai['action_items'][:2])
-                                    if actions:
-                                        lines.append(f"    ✓ {actions[:80]}")
+                                    lines.append(f"    [行动项]")
+                                    for idx, action in enumerate(ai['action_items'][:3], 1):
+                                        lines.append(f"      {idx}. {action[:60]}")
                             else:
                                 lines.append(f"  {date_str} {time_str} {subject}")
                                 content = email_item['body'].strip()
@@ -366,7 +370,7 @@ class AIReportGenerator:
                 add_person_emails_with_ai(filtered_pm_data,
                                         summary.get('project_managers', {}),
                                         f"项目经理邮件汇总 ({pm_count}封)",
-                                        "📋")
+                                        "")
         
         # 员工邮件（排除重复问题和高优先级）
         if summary.get('employee_emails_by_day'):
@@ -393,12 +397,12 @@ class AIReportGenerator:
                 add_person_emails_with_ai(filtered_emp_data,
                                         summary.get('employees', {}),
                                         f"员工邮件汇总 ({emp_count}封)",
-                                        "👥")
+                                        "")
         
         # 页脚
         lines.append("=" * 70)
         report_id = datetime.now().strftime('%Y%m%d%H%M%S')
-        footer_text = "本报告由AI邮件助手自动生成 - V5.0（上下文感知）" if ai_enabled else "本报告由邮件助手自动生成 - V3.0"
+        footer_text = "本报告由AI邮件助手自动生成 - V5.3（组织关系管理）" if ai_enabled else "本报告由邮件助手自动生成 - V3.0"
         lines.append(f"{footer_text} | 报告编号: {report_id}")
         lines.append("=" * 70)
         
