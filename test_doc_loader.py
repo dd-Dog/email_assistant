@@ -24,16 +24,16 @@ def test_doc_loader():
     # 检查依赖
     try:
         from docx import Document
-        print("✓ Word支持（python-docx）已安装")
+        print("[OK] Word支持（python-docx）已安装")
     except ImportError:
-        print("✗ Word支持（python-docx）未安装")
+        print("[X] Word支持（python-docx）未安装")
         print("  运行: pip install python-docx")
     
     try:
         from openpyxl import load_workbook
-        print("✓ Excel支持（openpyxl）已安装")
+        print("[OK] Excel支持（openpyxl）已安装")
     except ImportError:
-        print("✗ Excel支持（openpyxl）未安装")
+        print("[X] Excel支持（openpyxl）未安装")
         print("  运行: pip install openpyxl")
     
     print()
@@ -59,12 +59,12 @@ def test_doc_loader():
     print()
     
     for project_code, project_data in loader.projects_data.items():
-        print(f"📁 项目: {project_code}")
+        print(f"[项目] {project_code}")
         print(f"   文档数: {len(project_data['documents'])}")
         print()
         
         for doc_name, doc_data in project_data['documents'].items():
-            print(f"   📄 {doc_name}")
+            print(f"   [文件] {doc_name}")
             print(f"      大小: {doc_data['size']} 字符")
             
             # 显示前100个字符
