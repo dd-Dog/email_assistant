@@ -163,7 +163,7 @@ class AIReportGenerator:
                 if total_count == 0:
                     continue
                 
-                lines.append(f"▸ 【{sender_name}】({sender_email}) - {total_count}封")
+                lines.append(f">> 【{sender_name}】({sender_email}) - {total_count}封")
                 
                 # 按日期排序，日期和邮件内容紧凑显示
                 sorted_dates = sorted(days_data.keys(), reverse=True)
@@ -323,7 +323,7 @@ class AIReportGenerator:
                 add_person_emails_with_ai(filtered_supplier_data,
                                         summary.get('suppliers', {}),
                                         f"供应商邮件汇总 ({supplier_count_filtered}封)",
-                                        "🔌")
+                                        "")
         
         # 领导邮件（排除已在高优先级显示的）
         if summary.get('leader_emails_by_day'):
