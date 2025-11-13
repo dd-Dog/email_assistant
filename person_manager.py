@@ -162,4 +162,30 @@ class PersonManager:
     def has_profiles(self):
         """检查是否有人员信息"""
         return len(self.persons) > 0
+    
+    def get_persons_by_type(self, person_type):
+        """获取某类型的所有人员（V5.2：用于替代config中的人员列表）
+        
+        Args:
+            person_type: 人员类型 (customer/supplier/leader/pm/employee)
+            
+        Returns:
+            {email: name} 字典
+        """
+        result = {}
+        for email, person in self.persons.items():
+            if person.get('type') == person_type:
+                result[email] = person.get('name', email.split('@')[0])
+        return result
+    
+    def get_all_key_senders(self):
+        """获取所有关键发件人（V5.2：用于邮件获取）
+        
+        Returns:
+            {email: name} 字典（所有类型的人员）
+        """
+        result = {}
+        for email, person in self.persons.items():
+            result[email] = person.get('name', email.split('@')[0])
+        return result
 

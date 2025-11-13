@@ -75,12 +75,36 @@ def main():
             logger.error("无法连接到邮箱服务器，程序退出")
             return
         
-        # 获取配置（5类人员）
-        leaders = config.get('leaders', {})
-        project_managers = config.get('project_managers', {})
-        employees = config.get('employees', {})
-        customers = config.get('customers', {})
-        suppliers = config.get('suppliers', {})
+        # V5.2：从person_manager获取人员配置（优先）
+        from person_manager import PersonManager
+        person_mgr = PersonManager(persons_root='persons')
+        
+        # 优先从文件获取人员信息
+        if person_mgr.has_profiles():
+            logger.info("✅ 使用文件中的人员配置（Excel/Markdown）")
+            leaders = person_mgr.get_persons_by_type('leader')
+            project_managers = person_mgr.get_persons_by_type('pm')
+            employees = person_mgr.get_persons_by_type('employee')
+            customers = person_mgr.get_persons_by_type('customer')
+            suppliers = person_mgr.get_persons_by_type('supplier')
+            all_senders = person_mgr.get_all_key_senders()
+        else:
+            # 兼容旧版本：从config.json获取
+            logger.info("ℹ️  使用config.json中的人员配置（兼容模式）")
+            leaders = config.get('leaders', {})
+            project_managers = config.get('project_managers', {})
+            employees = config.get('employees', {})
+            customers = config.get('customers', {})
+            suppliers = config.get('suppliers', {})
+            
+            # 合并所有关键人
+            all_senders = {}
+            all_senders.update(leaders)
+            all_senders.update(project_managers)
+            all_senders.update(employees)
+            all_senders.update(customers)
+            all_senders.update(suppliers)
+        
         days_to_check = config.get('days_to_check', 3)
         repeat_issue_days = config.get('repeat_issue_days', 3)
         
@@ -88,13 +112,12 @@ def main():
         logger.info(f"领导: {len(leaders)} | 项目经理: {len(project_managers)} | 员工: {len(employees)}")
         logger.info(f"客户: {len(customers)} | 供应商: {len(suppliers)}")
         
-        # 合并所有关键人，一次性获取所有邮件
-        all_senders = {}
-        all_senders.update(leaders)
-        all_senders.update(project_managers)
-        all_senders.update(employees)
-        all_senders.update(customers)
-        all_senders.update(suppliers)
+        if not all_senders:
+            logger.warning("未配置任何关键发件人")
+            logger.info("请配置人员信息：")
+            logger.info("  方式1（推荐）：创建 persons/人员信息表.xlsx")
+            logger.info("  方式2（兼容）：在 config.json 中配置")
+            return
         
         logger.info(f"正在获取 {len(all_senders)} 个关键人的邮件...")
         all_emails = client.fetch_emails_from_senders(all_senders, days_to_check)
