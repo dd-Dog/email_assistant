@@ -1,0 +1,113 @@
+{
+  "persons": {
+    "customer@company.com": {
+      "name": "客户张总",
+      "type": "customer",
+      "company": "XX科技有限公司",
+      "role": "CTO",
+      "skills": ["嵌入式系统", "物联网", "系统架构"],
+      "experience_years": 15,
+      "education": "博士",
+      "technical_level": "expert",
+      "projects": ["项目A", "项目B"],
+      "communication_style": "技术导向，喜欢详细方案",
+      "priorities": ["质量", "稳定性", "性能"],
+      "notes": "技术背景深厚，可以深入讨论技术细节"
+    },
+    "supplier@vendor.com": {
+      "name": "供应商李工",
+      "type": "supplier",
+      "company": "芯片厂商A",
+      "role": "FAE工程师",
+      "skills": ["芯片集成", "驱动开发", "技术支持"],
+      "responsible_products": ["XX芯片", "YY模组"],
+      "response_time": "24小时",
+      "notes": "响应及时，技术支持很好"
+    },
+    "pm@company.com": {
+      "name": "项目经理王",
+      "type": "project_manager",
+      "role": "高级项目经理",
+      "experience_years": 8,
+      "skills": ["项目管理", "需求分析", "客户沟通"],
+      "projects": ["项目C", "项目D"],
+      "responsibilities": "负责整机项目的进度和质量管控",
+      "management_style": "注重细节，强调流程",
+      "notes": "擅长客户沟通和团队协调"
+    },
+    "dev@company.com": {
+      "name": "开发张工",
+      "type": "employee",
+      "role": "软件工程师",
+      "skills": ["C/C++", "Linux驱动", "Android应用"],
+      "experience_years": 5,
+      "education": "本科",
+      "specialties": ["底层驱动", "性能优化"],
+      "current_tasks": ["G20项目开发", "889问题修复"],
+      "notes": "技术扎实，执行力强"
+    }
+  },
+  "projects": {
+    "G20": {
+      "full_name": "G20智能终端整机项目",
+      "code": "G20",
+      "status": "testing",
+      "customer": "客户A公司",
+      "customer_email": "customer@company.com",
+      "start_date": "2025-10-01",
+      "deadline": "2025-12-31",
+      "current_phase": "集成测试阶段",
+      "progress": "85%",
+      "team": {
+        "pm": "chenqi@flyscale.cn",
+        "developers": ["xingpp@flyscale.cn", "lichang@flyscale.cn"],
+        "testers": ["wangyx@flyscale.cn"]
+      },
+      "tech_stack": {
+        "hardware": "展锐T310芯片",
+        "os": "Android 11",
+        "modules": ["4G通信", "GPS", "音视频"]
+      },
+      "key_features": [
+        "高清视频通话",
+        "本地录音录像",
+        "GPS实时定位",
+        "4G全网通"
+      ],
+      "current_issues": [
+        "网络稳定性优化",
+        "功耗问题",
+        "录音音量偏小"
+      ],
+      "milestones": {
+        "需求确认": "2025-10-15",
+        "原型开发": "2025-11-01",
+        "集成测试": "2025-11-20",
+        "交付": "2025-12-31"
+      },
+      "notes": "客户对质量要求严格，需要充分测试"
+    },
+    "889": {
+      "full_name": "889设备音频问题修复",
+      "code": "889",
+      "type": "bug_fix",
+      "status": "in_progress",
+      "priority": "high",
+      "customer": "内部测试",
+      "issue_date": "2025-11-08",
+      "deadline": "2025-11-15",
+      "assigned_to": "wangyx@flyscale.cn",
+      "description": "889设备存在两个音频问题：1.录音声音小 2.通话质量差",
+      "root_cause": "待分析",
+      "related_components": ["音频驱动", "ALSA配置", "麦克风增益"],
+      "impact": "影响产品质量，客户反馈",
+      "notes": "已持续3天，需要加快解决"
+    }
+  },
+  "project_keywords": {
+    "G20": ["G20", "g20", "G20项目"],
+    "889": ["889", "8088"],
+    "orange": ["orange", "Orange"]
+  }
+}
+
