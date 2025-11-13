@@ -1,12 +1,13 @@
 """
-AI分析器模块 - V4.0
-集成OpenAI和Gemini，提供智能邮件分析
+AI分析器模块 - V5.0
+集成OpenAI和Gemini，提供基于上下文的智能邮件分析
 """
 import logging
 import json
 import time
 from typing import Dict, List, Optional
 from ai_cache import AICache
+from context_builder import ContextBuilder
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,7 @@ class AIAnalyzer:
         
         self.client = None
         self.cache = AICache()  # 初始化缓存
+        self.context_builder = ContextBuilder()  # V5.0：上下文构建器
         self.api_calls = 0  # API调用计数
         self.cache_hits = 0  # 缓存命中计数
         
@@ -98,8 +100,11 @@ class AIAnalyzer:
             else:
                 logger.info(f"        → 调用AI API...")
             
-            # 构建提示词（传入类型）
-            prompt = self._build_prompt(sender_name, subject, body, sender_type)
+            # V5.0：构建上下文
+            context_data = self.context_builder.build_context_for_email(email_item)
+            
+            # 构建提示词（传入类型和上下文）
+            prompt = self._build_prompt(sender_name, subject, body, sender_type, context_data)
             
             # 调用AI
             if self.provider == 'openai':
@@ -116,27 +121,37 @@ class AIAnalyzer:
             # 保存到缓存
             self.cache.set(email_id, subject, body, analysis)
             
+            # V5.0：添加检测到的项目信息
+            if context_data and context_data.get('detected_projects'):
+                analysis['detected_projects'] = context_data['detected_projects']
+            
             return analysis
             
         except Exception as e:
             logger.error(f"AI分析失败: {str(e)}")
             return None
     
-    def _build_prompt(self, sender_name, subject, body, sender_type='normal'):
-        """构建AI分析提示词
+    def _build_prompt(self, sender_name, subject, body, sender_type='normal', context_data=None):
+        """构建AI分析提示词（V5.0：支持上下文）
         
         Args:
             sender_name: 发件人姓名
             subject: 邮件主题
             body: 邮件内容
             sender_type: 发件人类型 (normal/customer/supplier)
+            context_data: 上下文数据
         """
+        
+        # 构建上下文前缀
+        context_prefix = ""
+        if context_data:
+            context_prefix = self.context_builder.format_context_for_prompt(context_data)
         
         # 客户邮件特殊分析
         if sender_type == 'customer':
             prompt = f"""你是一个专业的技术需求分析师，请分析客户的需求邮件。
 
-客户: {sender_name}
+{context_prefix}客户: {sender_name}
 主题: {subject}
 内容:
 {body[:1000]}

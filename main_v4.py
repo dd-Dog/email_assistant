@@ -40,7 +40,7 @@ def load_config(config_file='config.json'):
 def main():
     """主函数 V4.0"""
     logger.info("=" * 50)
-    logger.info("AI邮件助手开始运行（V4.0）")
+    logger.info("AI邮件助手开始运行（V5.0 - 上下文感知版）")
     logger.info("=" * 50)
     
     # 加载配置
@@ -250,7 +250,7 @@ def main():
         client.disconnect_imap()
         
         logger.info("=" * 50)
-        logger.info("AI邮件助手运行完成（V4.0）")
+        logger.info("AI邮件助手运行完成（V5.0）")
         logger.info("=" * 50)
         
     except Exception as e:

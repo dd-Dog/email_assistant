@@ -1,5 +1,6 @@
 # 配置文件（包含敏感信息）
 config.json
+profiles.json
 
 # 日志文件
 *.log

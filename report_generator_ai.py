@@ -1,18 +1,19 @@
 """
-AI增强的报告生成器 - V4.0
-在原有报告基础上，添加AI分析结果
+AI增强的报告生成器 - V5.0
+在原有报告基础上，添加AI分析结果和项目关联
 """
 from datetime import datetime
 import logging
+from context_builder import ContextBuilder
 
 logger = logging.getLogger(__name__)
 
 
 class AIReportGenerator:
-    """AI增强的报告生成器"""
+    """AI增强的报告生成器（V5.0：支持项目关联）"""
     
     def __init__(self):
-        pass
+        self.context_builder = ContextBuilder()  # V5.0：上下文构建器
     
     def format_date_only(self, date):
         """只格式化日期（不含时间）"""
@@ -51,7 +52,7 @@ class AIReportGenerator:
         
         lines = []
         lines.append("=" * 70)
-        title = "📧 AI邮件助手每日报告 V4.0" if ai_enabled else "📧 邮件助手每日报告 V3.0"
+        title = "📧 AI邮件助手每日报告 V5.0" if ai_enabled else "📧 邮件助手每日报告 V3.0"
         lines.append(title)
         lines.append("=" * 70)
         
@@ -248,7 +249,20 @@ class AIReportGenerator:
                                 ai = email_item['ai_analysis']
                                 priority_emoji = self.get_priority_emoji(ai.get('priority'))
                                 urgency = self.get_urgency_text(ai.get('urgency'))
-                                lines.append(f"  {date_str} {time_str} {subject} [{priority_emoji}{urgency}]")
+                                
+                                # V5.0：显示项目标签
+                                project_tag = ""
+                                if ai.get('detected_projects'):
+                                    projects_str = ','.join(ai['detected_projects'])
+                                    project_tag = f" [项目:{projects_str}]"
+                                
+                                lines.append(f"  {date_str} {time_str} {subject} [{priority_emoji}{urgency}]{project_tag}")
+                                
+                                # V5.0：显示项目信息
+                                if ai.get('detected_projects'):
+                                    for proj_code in ai['detected_projects']:
+                                        proj_brief = self.context_builder.get_project_brief_for_display(proj_code)
+                                        lines.append(f"    📋 {proj_brief}")
                                 
                                 # 客户邮件特殊显示：需求分析
                                 if ai.get('summary'):
@@ -378,7 +392,7 @@ class AIReportGenerator:
         # 页脚
         lines.append("=" * 70)
         report_id = datetime.now().strftime('%Y%m%d%H%M%S')
-        footer_text = "本报告由AI邮件助手自动生成 - V4.0" if ai_enabled else "本报告由邮件助手自动生成 - V3.0"
+        footer_text = "本报告由AI邮件助手自动生成 - V5.0（上下文感知）" if ai_enabled else "本报告由邮件助手自动生成 - V3.0"
         lines.append(f"{footer_text} | 报告编号: {report_id}")
         lines.append("=" * 70)
         
