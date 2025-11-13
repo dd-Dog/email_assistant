@@ -1,11 +1,12 @@
 """
-人员信息管理模块 - V5.2
-管理和查询人员的详细信息（支持文件加载）
+人员信息管理模块 - V5.3
+管理和查询人员的详细信息（支持组织关系）
 """
 import json
 import os
 import logging
 from person_file_loader import PersonFileLoader
+from org_relationship_manager import OrgRelationshipManager
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,9 @@ class PersonManager:
         self.file_loader = PersonFileLoader(persons_root)
         
         self._load_profiles()
+        
+        # V5.3：组织关系管理器
+        self.org_manager = OrgRelationshipManager(self.persons) if self.persons else None
     
     def _load_profiles(self):
         """加载人员信息（V5.2：优先从文件加载）"""
@@ -188,4 +192,35 @@ class PersonManager:
         for email, person in self.persons.items():
             result[email] = person.get('name', email.split('@')[0])
         return result
+    
+    # V5.3：组织关系查询方法
+    def get_direct_leader(self, person_email):
+        """获取直属领导（V5.3）"""
+        if self.org_manager:
+            return self.org_manager.get_direct_leader(person_email)
+        return None
+    
+    def get_subordinates(self, leader_email):
+        """获取下属列表（V5.3）"""
+        if self.org_manager:
+            return self.org_manager.get_subordinates(leader_email)
+        return []
+    
+    def get_responsibility_chain(self, person_email):
+        """获取责任链（V5.3）"""
+        if self.org_manager:
+            return self.org_manager.get_responsibility_chain(person_email)
+        return []
+    
+    def find_responsible_person(self, project_name=None, department=None):
+        """查找项目或部门责任人（V5.3）"""
+        if self.org_manager:
+            return self.org_manager.find_responsible_person(project_name, department)
+        return []
+    
+    def get_org_summary(self):
+        """获取组织架构摘要（V5.3）"""
+        if self.org_manager:
+            return self.org_manager.get_org_summary()
+        return {}
 

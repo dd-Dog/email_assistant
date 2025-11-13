@@ -96,12 +96,20 @@ class PersonFileLoader:
                         header = headers[col_idx]
                         if value:
                             # 字段名映射
+                            # V5.3：扩展字段映射，增加组织关系字段
                             field_map = {
                                 '姓名': 'name',
                                 '邮箱': 'email',
                                 '类型': 'type',
+                                '人员类型': 'type',
                                 '公司': 'company',
                                 '职位': 'role',
+                                # V5.3 组织关系字段
+                                '所属部门': 'department',
+                                '直属领导': 'direct_leader',
+                                '负责部门': 'managed_departments',
+                                '负责客户': 'managed_customers',
+                                # 原有字段
                                 '技能': 'skills',
                                 '工作经验': 'experience_years',
                                 '学历': 'education',
@@ -187,12 +195,20 @@ class PersonFileLoader:
                 value = match.group(2).strip()
                 
                 # 字段名映射
+                # V5.3：扩展字段映射
                 field_map = {
                     '姓名': 'name',
                     '邮箱': 'email',
                     '类型': 'type',
+                    '人员类型': 'type',
                     '公司': 'company',
                     '职位': 'role',
+                    # V5.3 组织关系字段
+                    '所属部门': 'department',
+                    '直属领导': 'direct_leader',
+                    '负责部门': 'managed_departments',
+                    '负责客户': 'managed_customers',
+                    # 原有字段
                     '技能': 'skills',
                     '工作经验': 'experience_years',
                     '学历': 'education',
