@@ -1,0 +1,84 @@
+{
+  "common_params": {
+    "hardware": {
+      "chip": {"name": "主芯片", "type": "string"},
+      "cpu": {"name": "CPU", "type": "string"},
+      "gpu": {"name": "GPU", "type": "string"},
+      "ram": {"name": "运行内存", "type": "string"},
+      "rom": {"name": "存储空间", "type": "string"},
+      "screen_size": {"name": "屏幕尺寸", "type": "string"},
+      "screen_resolution": {"name": "屏幕分辨率", "type": "string"},
+      "camera_rear": {"name": "后置摄像头", "type": "string"},
+      "camera_front": {"name": "前置摄像头", "type": "string"},
+      "battery": {"name": "电池容量", "type": "string"},
+      "usb_type": {"name": "USB接口", "type": "string"}
+    },
+    "software": {
+      "os": {"name": "操作系统", "type": "string"},
+      "android_version": {"name": "Android版本", "type": "string"},
+      "kernel_version": {"name": "内核版本", "type": "string"}
+    },
+    "network": {
+      "4g": {"name": "4G网络", "type": "string"},
+      "5g": {"name": "5G网络", "type": "string"},
+      "wifi": {"name": "WiFi", "type": "string"},
+      "bluetooth": {"name": "蓝牙", "type": "string"},
+      "gps": {"name": "GPS", "type": "string"}
+    }
+  },
+  "products": {
+    "G20": {
+      "hardware": {
+        "chip": "展锐T310",
+        "cpu": "四核 ARM Cortex-A75 @2.0GHz",
+        "gpu": "Mali-G57 MP1",
+        "ram": "3GB LPDDR4X",
+        "rom": "32GB eMMC 5.1",
+        "screen_size": "4.0英寸",
+        "screen_resolution": "800x480",
+        "camera_rear": "500万像素",
+        "camera_front": "200万像素",
+        "battery": "3000mAh",
+        "usb_type": "Type-C"
+      },
+      "software": {
+        "os": "Android",
+        "android_version": "11",
+        "kernel_version": "4.19"
+      },
+      "network": {
+        "4g": "LTE Cat.4",
+        "wifi": "802.11 b/g/n 2.4GHz",
+        "bluetooth": "BT 4.2",
+        "gps": "GPS/北斗/GLONASS"
+      },
+      "features": {
+        "video_call": "支持SIP视频通话",
+        "audio_record": "支持高清录音（AAC/PCM）",
+        "bt_intercom": "支持蓝牙对讲",
+        "gps_location": "支持高精度定位"
+      }
+    },
+    "889": {
+      "hardware": {
+        "chip": "展锐T610",
+        "cpu": "八核 ARM Cortex-A75/A55",
+        "gpu": "Mali-G52 MP2",
+        "ram": "6GB LPDDR4X",
+        "rom": "128GB UFS 2.1"
+      },
+      "software": {
+        "os": "Android",
+        "android_version": "12",
+        "kernel_version": "5.4"
+      },
+      "network": {
+        "5g": "5G NR Sub-6GHz",
+        "4g": "LTE Cat.18",
+        "wifi": "WiFi 6 (802.11ax)",
+        "bluetooth": "BT 5.2"
+      }
+    }
+  }
+}
+

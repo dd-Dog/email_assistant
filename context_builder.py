@@ -1,10 +1,11 @@
 """
-上下文构建器 - V5.0
-为AI分析构建完整的上下文信息
+上下文构建器 - V5.1
+为AI分析构建完整的上下文信息（集成关键词检测）
 """
 import logging
 from person_manager import PersonManager
 from project_manager import ProjectManager
+from keyword_manager import KeywordManager
 
 logger = logging.getLogger(__name__)
 
@@ -12,17 +13,20 @@ logger = logging.getLogger(__name__)
 class ContextBuilder:
     """上下文构建器"""
     
-    def __init__(self, profiles_file='profiles.json'):
-        """初始化上下文构建器"""
+    def __init__(self, profiles_file='profiles.json', projects_root='projects'):
+        """初始化上下文构建器（V5.1增强）"""
         self.person_mgr = PersonManager(profiles_file)
-        self.project_mgr = ProjectManager(profiles_file)
+        self.project_mgr = ProjectManager(profiles_file, projects_root)
+        self.keyword_mgr = KeywordManager()  # V5.1：关键词管理器
         
-        self.context_enabled = self.person_mgr.has_profiles() or self.project_mgr.has_projects()
+        self.context_enabled = (self.person_mgr.has_profiles() or 
+                               self.project_mgr.has_projects() or
+                               self.keyword_mgr.has_keywords())
         
         if self.context_enabled:
-            logger.info("✅ 上下文功能已启用（基于人员和项目信息）")
+            logger.info("✅ 上下文功能已启用（人员/项目/关键词）")
         else:
-            logger.info("ℹ️  未配置人员/项目信息，使用基础分析模式")
+            logger.info("ℹ️  未配置上下文信息，使用基础分析模式")
     
     def build_context_for_email(self, email_item):
         """为邮件构建完整上下文
@@ -47,6 +51,18 @@ class ContextBuilder:
         text_to_search = f"{subject} {body}"
         detected_projects = self.project_mgr.detect_project_in_text(text_to_search)
         
+        # V5.1：检测关键词
+        keyword_result = None
+        if detected_projects:
+            # 如果检测到项目，使用项目代码检测项目特定关键词
+            keyword_result = self.keyword_mgr.detect_keywords_in_text(
+                text_to_search, 
+                detected_projects[0] if detected_projects else None
+            )
+        else:
+            # 否则只检测通用关键词
+            keyword_result = self.keyword_mgr.detect_keywords_in_text(text_to_search)
+        
         # 获取项目详细信息
         project_contexts = []
         for project_code in detected_projects:
@@ -60,7 +76,8 @@ class ContextBuilder:
         return {
             'person_context': person_context,
             'project_contexts': project_contexts,
-            'detected_projects': detected_projects
+            'detected_projects': detected_projects,
+            'keyword_result': keyword_result  # V5.1：关键词检测结果
         }
     
     def format_context_for_prompt(self, context_data):
@@ -90,6 +107,14 @@ class ContextBuilder:
             for proj in context_data['project_contexts']:
                 parts.append(proj['context'])
                 parts.append("")
+        
+        # V5.1：关键词上下文
+        if context_data.get('keyword_result'):
+            keyword_context = self.keyword_mgr.get_keyword_context(
+                context_data['keyword_result']
+            )
+            if keyword_context:
+                parts.append(keyword_context)
         
         if parts:
             parts.append("=" * 40)

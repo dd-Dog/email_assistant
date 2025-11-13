@@ -1,6 +1,6 @@
 """
-AI增强的报告生成器 - V5.0
-在原有报告基础上，添加AI分析结果和项目关联
+AI增强的报告生成器 - V5.1
+在原有报告基础上，添加AI分析结果、项目关联和关键词标签
 """
 from datetime import datetime
 import logging
@@ -250,13 +250,19 @@ class AIReportGenerator:
                                 priority_emoji = self.get_priority_emoji(ai.get('priority'))
                                 urgency = self.get_urgency_text(ai.get('urgency'))
                                 
-                                # V5.0：显示项目标签
+                                # V5.1：显示项目标签和关键词标签
                                 project_tag = ""
                                 if ai.get('detected_projects'):
                                     projects_str = ','.join(ai['detected_projects'])
                                     project_tag = f" [项目:{projects_str}]"
                                 
-                                lines.append(f"  {date_str} {time_str} {subject} [{priority_emoji}{urgency}]{project_tag}")
+                                keyword_tag = ""
+                                if ai.get('keyword_result') and ai['keyword_result'].get('is_important'):
+                                    keyword_tag = self.context_builder.keyword_mgr.get_keyword_tags(
+                                        ai['keyword_result']
+                                    )
+                                
+                                lines.append(f"  {date_str} {time_str} {subject} [{priority_emoji}{urgency}]{project_tag}{keyword_tag}")
                                 
                                 # V5.0：显示项目信息
                                 if ai.get('detected_projects'):

@@ -125,6 +125,10 @@ class AIAnalyzer:
             if context_data and context_data.get('detected_projects'):
                 analysis['detected_projects'] = context_data['detected_projects']
             
+            # V5.1：添加关键词信息
+            if context_data and context_data.get('keyword_result'):
+                analysis['keyword_result'] = context_data['keyword_result']
+            
             return analysis
             
         except Exception as e:

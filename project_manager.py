@@ -1,11 +1,13 @@
 """
-项目信息管理模块 - V5.0
-管理和查询项目的详细信息
+项目信息管理模块 - V5.1
+管理和查询项目的详细信息（支持文件夹加载）
 """
 import json
 import os
 import logging
 import re
+from project_doc_loader import ProjectDocLoader
+from product_params_manager import ProductParamsManager
 
 logger = logging.getLogger(__name__)
 
@@ -13,15 +15,22 @@ logger = logging.getLogger(__name__)
 class ProjectManager:
     """项目信息管理器"""
     
-    def __init__(self, profiles_file='profiles.json'):
-        """初始化项目管理器
+    def __init__(self, profiles_file='profiles.json', projects_root='projects'):
+        """初始化项目管理器（V5.1：支持文件夹加载）
         
         Args:
-            profiles_file: 项目信息配置文件
+            profiles_file: 项目基础信息配置文件
+            projects_root: 项目文件夹根目录
         """
         self.profiles_file = profiles_file
+        self.projects_root = projects_root
         self.projects = {}
         self.project_keywords = {}
+        
+        # V5.1：新增模块
+        self.doc_loader = ProjectDocLoader(projects_root)
+        self.params_manager = ProductParamsManager()
+        
         self._load_profiles()
     
     def _load_profiles(self):
@@ -74,11 +83,13 @@ class ProjectManager:
         
         return detected_projects
     
-    def get_project_context(self, project_code):
-        """获取项目上下文信息（用于AI提示词）
+    def get_project_context(self, project_code, include_docs=True, include_params=True):
+        """获取项目上下文信息（用于AI提示词，V5.1增强）
         
         Args:
             project_code: 项目代码
+            include_docs: 是否包含项目文档
+            include_params: 是否包含产品参数
             
         Returns:
             格式化的上下文字符串
@@ -131,6 +142,12 @@ class ProjectManager:
             elif isinstance(tech_stack, list):
                 context_parts.append(f"- 技术栈：{', '.join(tech_stack)}")
         
+        # V5.1：产品参数
+        if include_params and self.params_manager.has_params():
+            params_str = self.params_manager.format_params_for_ai(project_code)
+            if params_str:
+                context_parts.append(f"- 产品参数：{params_str}")
+        
         # 关键功能
         key_features = project.get('key_features', [])
         if key_features:
@@ -150,6 +167,14 @@ class ProjectManager:
         notes = project.get('notes')
         if notes:
             context_parts.append(f"- 备注：{notes}")
+        
+        # V5.1：项目文档
+        if include_docs and self.doc_loader.has_projects():
+            project_content = self.doc_loader.get_project_content(project_code, max_length=2000)
+            if project_content:
+                context_parts.append("")
+                context_parts.append("【项目文档摘要】")
+                context_parts.append(project_content[:2000])
         
         return '\n'.join(context_parts)
     
@@ -180,5 +205,16 @@ class ProjectManager:
     
     def has_projects(self):
         """检查是否有项目信息"""
-        return len(self.projects) > 0
+        return len(self.projects) > 0 or self.doc_loader.has_projects()
+    
+    def get_project_documents_summary(self, project_code):
+        """获取项目文档摘要（V5.1）"""
+        project_info = self.doc_loader.get_project_info(project_code)
+        if not project_info:
+            return ""
+        return project_info['summary']
+    
+    def get_product_params(self, project_code):
+        """获取产品参数（V5.1）"""
+        return self.params_manager.get_product_params(project_code)
 

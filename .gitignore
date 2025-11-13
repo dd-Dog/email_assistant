@@ -2,6 +2,9 @@
 config.json
 profiles.json
 
+# V5.1：项目文档（可能包含敏感信息）
+projects/*/
+
 # 日志文件
 *.log
 
