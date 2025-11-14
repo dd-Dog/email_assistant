@@ -92,7 +92,7 @@ class AIReportGenerator:
                 lines.append("======== 高优先级邮件（需立即处理） ========")
                 lines.append("")
                 
-                for email_item in high_priority_emails[:5]:  # 最多显示5封
+                for email_item in high_priority_emails:  # V5.3：显示所有高优先级邮件
                     ai = email_item['ai_analysis']
                     sender_display = f"{email_item['from_name']}({email_item['from_email']})"
                     
