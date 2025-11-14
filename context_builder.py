@@ -1,11 +1,12 @@
 """
-上下文构建器 - V5.1
-为AI分析构建完整的上下文信息（集成关键词检测）
+上下文构建器 - V6.0
+为AI分析构建完整的上下文信息（集成公司知识图谱）
 """
 import logging
 from person_manager import PersonManager
 from project_manager import ProjectManager
 from keyword_manager import KeywordManager
+from company_manager import CompanyManager  # V6.0：公司管理器
 
 logger = logging.getLogger(__name__)
 
@@ -13,18 +14,30 @@ logger = logging.getLogger(__name__)
 class ContextBuilder:
     """上下文构建器"""
     
-    def __init__(self, profiles_file='profiles.json', projects_root='projects'):
-        """初始化上下文构建器（V5.1增强）"""
+    def __init__(self, profiles_file='profiles.json', projects_root='projects', company_root='config/公司'):
+        """初始化上下文构建器（V6.0：集成公司知识图谱）"""
         self.person_mgr = PersonManager(profiles_file)
         self.project_mgr = ProjectManager(profiles_file, projects_root)
         self.keyword_mgr = KeywordManager()  # V5.1：关键词管理器
+        self.company_mgr = CompanyManager(company_root)  # V6.0：公司管理器
         
         self.context_enabled = (self.person_mgr.has_profiles() or 
                                self.project_mgr.has_projects() or
-                               self.keyword_mgr.has_keywords())
+                               self.keyword_mgr.has_keywords() or
+                               self.company_mgr.has_company_info())
         
         if self.context_enabled:
-            logger.info("✅ 上下文功能已启用（人员/项目/关键词）")
+            features = []
+            if self.person_mgr.has_profiles():
+                features.append("人员")
+            if self.project_mgr.has_projects():
+                features.append("项目")
+            if self.keyword_mgr.has_keywords():
+                features.append("关键词")
+            if self.company_mgr.has_company_info():
+                features.append("公司")  # V6.0新增
+            
+            logger.info(f"✅ 上下文功能已启用（{'/'.join(features)}）")
         else:
             logger.info("ℹ️  未配置上下文信息，使用基础分析模式")
     
@@ -90,9 +103,18 @@ class ContextBuilder:
             格式化的上下文字符串
         """
         if not context_data:
+            # V6.0：即使没有邮件上下文，也提供公司背景
+            if self.company_mgr.has_company_info():
+                return self.company_mgr.get_company_context_for_ai()
             return ""
         
         parts = []
+        
+        # V6.0：公司背景信息（放在最前面，提供宏观视角）
+        if self.company_mgr.has_company_info():
+            company_context = self.company_mgr.get_company_context_for_ai()
+            if company_context:
+                parts.append(company_context)
         
         # 人员信息
         if context_data.get('person_context'):
