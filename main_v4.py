@@ -108,6 +108,9 @@ def main():
         days_to_check = config.get('days_to_check', 3)
         repeat_issue_days = config.get('repeat_issue_days', 3)
         
+        # 获取自己的邮箱地址（用于过滤）
+        self_email = config.get('self_email', email_account['username'])
+        
         logger.info(f"正在读取最近 {days_to_check} 天的邮件...")
         logger.info(f"领导: {len(leaders)} | 项目经理: {len(project_managers)} | 员工: {len(employees)}")
         logger.info(f"客户: {len(customers)} | 供应商: {len(suppliers)}")
@@ -120,7 +123,9 @@ def main():
             return
         
         logger.info(f"正在获取 {len(all_senders)} 个关键人的邮件...")
-        all_emails = client.fetch_emails_from_senders(all_senders, days_to_check)
+        if self_email:
+            logger.info(f"📌 将过滤掉自己发送的邮件: {self_email}")
+        all_emails = client.fetch_emails_from_senders(all_senders, days_to_check, exclude_self=self_email)
         
         # 分类邮件（5类）
         leader_emails = []

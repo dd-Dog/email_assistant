@@ -99,12 +99,13 @@ class EmailClient:
         
         return body.strip()
     
-    def fetch_emails_from_senders(self, senders_dict, days=7):
+    def fetch_emails_from_senders(self, senders_dict, days=7, exclude_self=None):
         """从指定发件人获取最近几天的邮件
         
         Args:
             senders_dict: 字典格式 {email: name}
             days: 获取最近几天的邮件
+            exclude_self: 要排除的自己的邮箱地址（可选）
             
         Returns:
             邮件数据列表，每封邮件包含发件人姓名信息
@@ -121,6 +122,9 @@ class EmailClient:
             
             # 创建发件人邮箱地址集合（小写，用于匹配）
             sender_emails_lower = {email.lower(): (email, name) for email, name in senders_dict.items()}
+            
+            # 如果设置了exclude_self，将其转为小写
+            exclude_self_lower = exclude_self.lower() if exclude_self else None
             
             emails_data = []
             
@@ -216,6 +220,11 @@ class EmailClient:
                         continue
                     
                     sender_email = email_match.group(0).lower()
+                    
+                    # 过滤掉自己发送的邮件
+                    if exclude_self_lower and sender_email == exclude_self_lower:
+                        logger.debug(f"跳过自己发送的邮件: {subject}")
+                        continue
                     
                     # 检查是否是目标发件人
                     if sender_email not in sender_emails_lower:
